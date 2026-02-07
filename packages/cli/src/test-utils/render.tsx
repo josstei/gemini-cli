@@ -119,6 +119,9 @@ const configProxy = new Proxy({} as Config, {
       return () =>
         '/Users/test/project/foo/bar/and/some/more/directories/to/make/it/long';
     }
+    if (prop === 'getUseBackgroundColor') {
+      return () => true;
+    }
     const internal = getMockConfigInternal();
     if (prop in internal) {
       return internal[prop as keyof typeof internal];
