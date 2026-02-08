@@ -40,7 +40,6 @@ interface HistoryItemDisplayProps {
   availableTerminalHeight?: number;
   terminalWidth: number;
   isPending: boolean;
-  isFocused?: boolean;
   commands?: readonly SlashCommand[];
   activeShellPtyId?: number | null;
   embeddedShellFocused?: boolean;
@@ -53,7 +52,6 @@ export const HistoryItemDisplay: React.FC<HistoryItemDisplayProps> = ({
   terminalWidth,
   isPending,
   commands,
-  isFocused = true,
   activeShellPtyId,
   embeddedShellFocused,
   availableTerminalHeightGemini,
@@ -147,7 +145,6 @@ export const HistoryItemDisplay: React.FC<HistoryItemDisplayProps> = ({
           groupId={itemForDisplay.id}
           availableTerminalHeight={availableTerminalHeight}
           terminalWidth={terminalWidth}
-          isFocused={isFocused}
           activeShellPtyId={activeShellPtyId}
           embeddedShellFocused={embeddedShellFocused}
           borderTop={itemForDisplay.borderTop}
