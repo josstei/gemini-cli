@@ -12,7 +12,6 @@ import { ToolCallStatus } from '../../types.js';
 import { ToolMessage } from './ToolMessage.js';
 import { ShellToolMessage } from './ShellToolMessage.js';
 import { theme } from '../../semantic-colors.js';
-import { useConfig } from '../../contexts/ConfigContext.js';
 import { isShellTool, isThisShellFocused } from './ToolShared.js';
 import { ASK_USER_DISPLAY_NAME } from '@google/gemini-cli-core';
 import { ShowMoreLines } from '../ShowMoreLines.js';
@@ -57,7 +56,6 @@ export const ToolGroupMessage: React.FC<ToolGroupMessageProps> = ({
     [allToolCalls],
   );
 
-  const config = useConfig();
   const { constrainHeight } = useUIState();
 
   // If Event-Driven Scheduler is enabled, we HIDE tools that are still in
@@ -175,7 +173,6 @@ export const ToolGroupMessage: React.FC<ToolGroupMessageProps> = ({
                 {...commonProps}
                 activeShellPtyId={activeShellPtyId}
                 embeddedShellFocused={embeddedShellFocused}
-                config={config}
               />
             ) : (
               <ToolMessage {...commonProps} />
