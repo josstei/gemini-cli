@@ -20,7 +20,6 @@ import {
   PREVIEW_GEMINI_MODEL,
   PREVIEW_GEMINI_FLASH_MODEL,
   DEFAULT_GEMINI_MODEL_AUTO,
-  DEFAULT_GEMINI_MODEL,
   DEFAULT_GEMINI_FLASH_LITE_MODEL,
 } from '../config/models.js';
 import { ApprovalMode } from '../policy/types.js';
@@ -98,7 +97,7 @@ describe('Core System Prompt (prompts.ts)', () => {
       isAgentsEnabled: vi.fn().mockReturnValue(false),
       getPreviewFeatures: vi.fn().mockReturnValue(true),
       getModel: vi.fn().mockReturnValue(DEFAULT_GEMINI_MODEL_AUTO),
-      getActiveModel: vi.fn().mockReturnValue(DEFAULT_GEMINI_MODEL),
+      getActiveModel: vi.fn().mockReturnValue(PREVIEW_GEMINI_MODEL),
       getMessageBus: vi.fn(),
       getAgentRegistry: vi.fn().mockReturnValue({
         getDirectoryContext: vi.fn().mockReturnValue('Mock Agent Directory'),
@@ -340,14 +339,14 @@ describe('Core System Prompt (prompts.ts)', () => {
           `Utilize specialized sub-agents (e.g., \`codebase_investigator\`) as the primary mechanism for initial discovery`,
         );
         expect(prompt).not.toContain(
-          "Use 'grep_search' and 'glob' search tools extensively",
+          'Use `grep_search` and `glob` search tools extensively',
         );
       } else {
         expect(prompt).not.toContain(
           `Utilize specialized sub-agents (e.g., \`codebase_investigator\`) as the primary mechanism for initial discovery`,
         );
         expect(prompt).toContain(
-          "Use 'grep_search' and 'glob' search tools extensively",
+          'Use `grep_search` and `glob` search tools extensively',
         );
       }
       expect(prompt).toMatchSnapshot();
@@ -465,6 +464,9 @@ describe('Core System Prompt (prompts.ts)', () => {
   describe('Platform-specific and Background Process instructions', () => {
     it('should include Windows-specific shell efficiency commands on win32', () => {
       mockPlatform('win32');
+      vi.mocked(mockConfig.getActiveModel).mockReturnValue(
+        DEFAULT_GEMINI_FLASH_LITE_MODEL,
+      );
       const prompt = getCoreSystemPrompt(mockConfig);
       expect(prompt).toContain(
         "using commands like 'type' or 'findstr' (on CMD) and 'Get-Content' or 'Select-String' (on PowerShell)",
@@ -476,6 +478,9 @@ describe('Core System Prompt (prompts.ts)', () => {
 
     it('should include generic shell efficiency commands on non-Windows', () => {
       mockPlatform('linux');
+      vi.mocked(mockConfig.getActiveModel).mockReturnValue(
+        DEFAULT_GEMINI_FLASH_LITE_MODEL,
+      );
       const prompt = getCoreSystemPrompt(mockConfig);
       expect(prompt).toContain("using commands like 'grep', 'tail', 'head'");
       expect(prompt).not.toContain(
@@ -527,7 +532,7 @@ describe('Core System Prompt (prompts.ts)', () => {
     const prompt = getCoreSystemPrompt(mockConfig);
 
     expect(prompt).toContain(
-      "For complex tasks, consider using the 'enter_plan_mode' tool to enter a dedicated planning phase before starting implementation.",
+      'For complex tasks, consider using the `enter_plan_mode` tool to enter a dedicated planning phase before starting implementation.',
     );
     expect(prompt).toMatchSnapshot();
   });
