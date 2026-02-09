@@ -49,6 +49,8 @@ export interface PrimaryWorkflowsOptions {
   enableCodebaseInvestigator: boolean;
   enableWriteTodosTool: boolean;
   enableEnterPlanModeTool: boolean;
+  enableGrep: boolean;
+  enableGlob: boolean;
   approvedPlan?: { path: string };
 }
 
@@ -446,10 +448,29 @@ function workflowStepResearch(options: PrimaryWorkflowsOptions): string {
     suggestion = ` For complex tasks, consider using the '${ENTER_PLAN_MODE_TOOL_NAME}' tool to enter a dedicated planning phase before starting implementation.`;
   }
 
-  if (options.enableCodebaseInvestigator) {
-    return `1. **Research:** Systematically map the codebase and validate assumptions. Utilize specialized sub-agents (e.g., \`codebase_investigator\`) as the primary mechanism for initial discovery when the task involves **complex refactoring, codebase exploration or system-wide analysis**. For **simple, targeted searches** (like finding a specific function name, file path, or variable declaration), use '${GREP_TOOL_NAME}' or '${GLOB_TOOL_NAME}' directly in parallel. Use '${READ_FILE_TOOL_NAME}' to validate all assumptions. **Prioritize empirical reproduction of reported issues to confirm the failure state.**${suggestion}`;
+  const searchTools: string[] = [];
+  if (options.enableGrep) searchTools.push(`'${GREP_TOOL_NAME}'`);
+  if (options.enableGlob) searchTools.push(`'${GLOB_TOOL_NAME}'`);
+
+  let searchSentence =
+    ' Use search tools extensively to understand file structures, existing code patterns, and conventions.';
+  if (searchTools.length > 0) {
+    const toolsStr = searchTools.join(' and ');
+    const toolOrTools = searchTools.length > 1 ? 'tools' : 'tool';
+    searchSentence = ` Use ${toolsStr} search ${toolOrTools} extensively (in parallel if independent) to understand file structures, existing code patterns, and conventions.`;
   }
-  return `1. **Research:** Systematically map the codebase and validate assumptions. Use '${GREP_TOOL_NAME}' and '${GLOB_TOOL_NAME}' search tools extensively (in parallel if independent) to understand file structures, existing code patterns, and conventions. Use '${READ_FILE_TOOL_NAME}' to validate all assumptions. **Prioritize empirical reproduction of reported issues to confirm the failure state.**${suggestion}`;
+
+  if (options.enableCodebaseInvestigator) {
+    let subAgentSearch = '';
+    if (searchTools.length > 0) {
+      const toolsStr = searchTools.join(' or ');
+      subAgentSearch = ` For **simple, targeted searches** (like finding a specific function name, file path, or variable declaration), use ${toolsStr} directly in parallel.`;
+    }
+
+    return `1. **Research:** Systematically map the codebase and validate assumptions. Utilize specialized sub-agents (e.g., \`codebase_investigator\`) as the primary mechanism for initial discovery when the task involves **complex refactoring, codebase exploration or system-wide analysis**.${subAgentSearch} Use '${READ_FILE_TOOL_NAME}' to validate all assumptions. **Prioritize empirical reproduction of reported issues to confirm the failure state.**${suggestion}`;
+  }
+
+  return `1. **Research:** Systematically map the codebase and validate assumptions.${searchSentence} Use '${READ_FILE_TOOL_NAME}' to validate all assumptions. **Prioritize empirical reproduction of reported issues to confirm the failure state.**${suggestion}`;
 }
 
 function workflowStepStrategy(options: PrimaryWorkflowsOptions): string {

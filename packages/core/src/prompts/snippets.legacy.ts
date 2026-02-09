@@ -50,6 +50,8 @@ export interface PrimaryWorkflowsOptions {
   enableCodebaseInvestigator: boolean;
   enableWriteTodosTool: boolean;
   enableEnterPlanModeTool: boolean;
+  enableGrep: boolean;
+  enableGlob: boolean;
   approvedPlan?: { path: string };
 }
 
@@ -416,10 +418,29 @@ function mandateContinueWork(interactive: boolean): string {
 }
 
 function workflowStepUnderstand(options: PrimaryWorkflowsOptions): string {
+  const searchTools: string[] = [];
+  if (options.enableGrep) searchTools.push(`'${GREP_TOOL_NAME}'`);
+  if (options.enableGlob) searchTools.push(`'${GLOB_TOOL_NAME}'`);
+
   if (options.enableCodebaseInvestigator) {
-    return `1. **Understand & Strategize:** Think about the user's request and the relevant codebase context. When the task involves **complex refactoring, codebase exploration or system-wide analysis**, your **first and primary action** must be to delegate to the 'codebase_investigator' agent using the 'codebase_investigator' tool. Use it to build a comprehensive understanding of the code, its structure, and dependencies. For **simple, targeted searches** (like finding a specific function name, file path, or variable declaration), you should use '${GREP_TOOL_NAME}' or '${GLOB_TOOL_NAME}' directly.`;
+    let searchPart = '';
+    if (searchTools.length > 0) {
+      const toolsStr = searchTools.join(' or ');
+      searchPart = ` For **simple, targeted searches** (like finding a specific function name, file path, or variable declaration), you should use ${toolsStr} directly.`;
+    }
+
+    return `1. **Understand & Strategize:** Think about the user's request and the relevant codebase context. When the task involves **complex refactoring, codebase exploration or system-wide analysis**, your **first and primary action** must be to delegate to the 'codebase_investigator' agent using the 'codebase_investigator' tool. Use it to build a comprehensive understanding of the code, its structure, and dependencies.${searchPart}`;
   }
-  return `1. **Understand:** Think about the user's request and the relevant codebase context. Use '${GREP_TOOL_NAME}' and '${GLOB_TOOL_NAME}' search tools extensively (in parallel if independent) to understand file structures, existing code patterns, and conventions.
+
+  let searchSentence =
+    ' Use search tools extensively to understand file structures, existing code patterns, and conventions.';
+  if (searchTools.length > 0) {
+    const toolsStr = searchTools.join(' and ');
+    const toolOrTools = searchTools.length > 1 ? 'tools' : 'tool';
+    searchSentence = ` Use ${toolsStr} search ${toolOrTools} extensively (in parallel if independent) to understand file structures, existing code patterns, and conventions.`;
+  }
+
+  return `1. **Understand:** Think about the user's request and the relevant codebase context.${searchSentence}
 Use '${READ_FILE_TOOL_NAME}' to understand context and validate any assumptions you may have. If you need to read multiple files, you should make multiple parallel calls to '${READ_FILE_TOOL_NAME}'.`;
 }
 
